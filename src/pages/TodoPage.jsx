@@ -8,15 +8,15 @@ function TodoPage() {
   const [editText, setEditText] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch todos when component mounts
+  const API_BASE_URL = "https://backends-xvqm.onrender.com";
+
   useEffect(() => {
     fetchTodos();
   }, []);
 
-  // Fetch all todos
   const fetchTodos = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/todos');
+      const response = await fetch(`${API_BASE_URL}/api/todos`);
       const data = await response.json();
       setTodos(data);
     } catch (error) {
@@ -24,28 +24,14 @@ function TodoPage() {
     }
   };
 
-  const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  };
-
-  // Add new todo
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/todos', {
+      const response = await fetch(`${API_BASE_URL}/api/todos`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: newTodo }),
       });
       const data = await response.json();
@@ -56,28 +42,13 @@ function TodoPage() {
     }
   };
 
-  // Delete todo
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/todos/${id}`, {
-        method: 'DELETE',
-      });
+      await fetch(`${API_BASE_URL}/api/todos/${id}`, { method: 'DELETE' });
       setTodos(todos.filter(todo => todo._id !== id));
     } catch (error) {
       console.error('Error deleting todo:', error);
     }
-  };
-
-  const openEditModal = (todo) => {
-    setEditingTodo(todo);
-    setEditText(todo.text);
-    setIsModalOpen(true);
-  };
-
-  const closeEditModal = () => {
-    setEditingTodo(null);
-    setEditText('');
-    setIsModalOpen(false);
   };
 
   const handleUpdate = async (e) => {
@@ -85,17 +56,13 @@ function TodoPage() {
     if (!editText.trim() || !editingTodo) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/todos/${editingTodo._id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/todos/${editingTodo._id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: editText }),
       });
       const updatedTodo = await response.json();
-      setTodos(todos.map(todo => 
-        todo._id === editingTodo._id ? updatedTodo : todo
-      ));
+      setTodos(todos.map(todo => (todo._id === editingTodo._id ? updatedTodo : todo)));
       closeEditModal();
     } catch (error) {
       console.error('Error updating todo:', error);
@@ -105,97 +72,22 @@ function TodoPage() {
   return (
     <div className="page-container">
       <div className="todo-container">
-        <h1>
-          <i className="fas fa-tasks"></i>
-          Task Manager
-        </h1>
-        
-        {/* Add Todo Form */}
+        <h1>Task Manager</h1>
         <form onSubmit={handleSubmit} className="todo-form">
-          <input
-            type="text"
-            value={newTodo}
-            onChange={(e) => setNewTodo(e.target.value)}
-            placeholder="What needs to be done?"
-            className="todo-input"
-          />
-          <button type="submit" className="todo-button">
-            <span>Add Task</span>
-            <i className="fas fa-plus"></i>
-          </button>
+          <input type="text" value={newTodo} onChange={(e) => setNewTodo(e.target.value)} placeholder="What needs to be done?" />
+          <button type="submit">Add Task</button>
         </form>
-
-        {/* Todo List */}
         <div className="todo-list">
           {todos.map((todo) => (
-            <div key={todo._id} className="todo-item">
-              <div className="todo-content">
-                <span className="todo-text">{todo.text}</span>
-                <span className="todo-date">
-                  <i className="far fa-calendar-alt"></i>
-                  {formatDate(todo.createdAt)}
-                </span>
-              </div>
-              <div className="todo-actions">
-                <button
-                  onClick={() => openEditModal(todo)}
-                  className="update-button"
-                >
-                  <i className="fas fa-edit"></i>
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(todo._id)}
-                  className="delete-button"
-                >
-                  <i className="fas fa-trash"></i>
-                  Delete
-                </button>
-              </div>
+            <div key={todo._id}>
+              <span>{todo.text}</span>
+              <button onClick={() => handleDelete(todo._id)}>Delete</button>
             </div>
           ))}
-          {todos.length === 0 && (
-            <div className="no-todos">
-              <i className="fas fa-clipboard-list"></i>
-              <p>No tasks yet. Add one above!</p>
-            </div>
-          )}
         </div>
-
-        {/* Edit Modal */}
-        {isModalOpen && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <div className="modal-header">
-                <h2>Edit Task</h2>
-                <button onClick={closeEditModal} className="modal-close">
-                  <i className="fas fa-times"></i>
-                </button>
-              </div>
-              <form onSubmit={handleUpdate} className="edit-form">
-                <input
-                  type="text"
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  placeholder="Update your task"
-                  className="edit-input"
-                  autoFocus
-                />
-                <div className="modal-actions">
-                  <button type="button" onClick={closeEditModal} className="cancel-button">
-                    Cancel
-                  </button>
-                  <button type="submit" className="save-button">
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
-export default TodoPage; 
+export default TodoPage;
