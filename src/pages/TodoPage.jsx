@@ -6,7 +6,7 @@ function TodoPage() {
   const [newTodo, setNewTodo] = useState('');
   const [editingTodo, setEditingTodo] = useState(null);
   const [editText, setEditText] = useState('');
-  const [isModalOpen, setIsModalOpen] = false;
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const BACKEND_URL = "https://backends-xvqm.onrender.com"; // Updated backend URL
 
@@ -59,6 +59,20 @@ function TodoPage() {
     }
   };
 
+  // Open Edit Modal (Fixed)
+  const openEditModal = (todo) => {
+    setEditingTodo(todo);
+    setEditText(todo.text);
+    setIsModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setEditingTodo(null);
+    setEditText('');
+    setIsModalOpen(false);
+  };
+
+  // Update Todo
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!editText.trim() || !editingTodo) return;
@@ -136,6 +150,38 @@ function TodoPage() {
             </div>
           )}
         </div>
+
+        {/* Edit Modal */}
+        {isModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <div className="modal-header">
+                <h2>Edit Task</h2>
+                <button onClick={closeEditModal} className="modal-close">
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <form onSubmit={handleUpdate} className="edit-form">
+                <input
+                  type="text"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  placeholder="Update your task"
+                  className="edit-input"
+                  autoFocus
+                />
+                <div className="modal-actions">
+                  <button type="button" onClick={closeEditModal} className="cancel-button">
+                    Cancel
+                  </button>
+                  <button type="submit" className="save-button">
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
